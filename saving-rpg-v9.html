@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101722">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="貯金RPG">
+<title>貯金RPG Ver.9</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d131b;color:#f4f7fb;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif}.app{max-width:700px;margin:auto;padding:16px 14px 50px}
+h1{margin:2px 0 5px;font-size:28px}h2{font-size:19px;margin:0 0 12px}.muted{color:#92a0b0;font-size:13px}.small{font-size:12px;color:#8c99a9}.card{background:#151d27;border:1px solid #303c4b;border-radius:18px;padding:15px;margin:10px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.big{font-size:26px;font-weight:850}.bar{height:12px;background:#26313e;border-radius:99px;overflow:hidden;margin-top:9px}.fill{height:100%;background:#4fc879;border-radius:99px;transition:.25s}.row{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap}.btn{border:0;border-radius:12px;padding:10px 13px;background:#263343;color:#fff;font-weight:750}.primary{background:#2d8a50}.gold{background:#9a741b}.danger{background:#7c3030}.quest{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #293441;padding:12px 0}.quest:first-child{border-top:0}.done{opacity:.48}.bonus{border:2px solid #b5841f;border-radius:15px;padding:12px;margin:8px 0}.badge{background:#253344;border-radius:99px;padding:5px 9px;font-size:12px;color:#c8d8ff}.milestone{border:1px solid #303c4b;border-radius:14px;padding:12px;margin:7px 0}.milestone.next{outline:2px solid #4fc879}.milestone.done{border-color:#4fc879}.gacha{text-align:center;background:#0a1119;border:1px solid #445163;border-radius:16px;padding:18px}.machine{font-size:54px}.gresult{font-size:30px;font-weight:900;padding:10px}.hidden{display:none}input,select{width:100%;background:#0d141d;color:#fff;border:1px solid #394657;border-radius:11px;padding:11px;font-size:16px;margin:5px 0 10px}label{font-size:13px;color:#c9d2dc}.notice{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#202b38;border:1px solid #4a596b;border-radius:13px;padding:12px 16px;z-index:20;display:none;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="card"><div class="row"><div><h1>🎮 貯金RPG <span class="badge">Ver.9</span></h1><div class="muted">最速で300万円を目指す貯金ゲーム</div></div><span id="streak" class="badge">🔥 1日</span></div></header>
+
+<section class="grid">
+<div class="card"><div class="muted">🏦 銀行</div><div id="bank" class="big">¥270,215</div></div>
+<div class="card"><div class="muted">💵 現金貯金</div><div id="cash" class="big">¥0</div></div>
+</section>
+
+<section class="card">
+<div class="row"><div><div class="muted">🎯 <span id="goalName">RAV4購入資金</span></div><div id="total" class="big">¥270,215</div></div><b id="pct">9.0%</b></div>
+<div class="bar"><div id="progress" class="fill"></div></div>
+<div class="row small" style="margin-top:7px"><span id="remain">あと ¥2,729,785</span><span id="speed">累計獲得 ¥0</span></div>
+</section>
+
+<section class="grid">
+<div class="card"><div class="muted">⚔️ 冒険者レベル</div><div id="level" class="big">Lv.3</div><div id="exp" class="small">EXP 70 / 100</div><div class="bar"><div id="xpbar" class="fill"></div></div></div>
+<div class="card"><div class="muted">🏆 クエスト累計</div><div id="questTotal" class="big">¥0</div><div class="small">クエストで増えた総額</div><div id="todayEarned" class="small" style="margin-top:7px">今日 ¥0</div></div>
+</section>
+
+<section class="card">
+<div class="row"><h2>📜 今日のクエスト</h2><span id="today" class="badge"></span></div>
+<div id="quests"></div>
+<div class="row" style="margin-top:8px"><button class="btn secondary" onclick="toggle('questForm')">＋自分で追加</button><button class="btn" onclick="resetDaily()">今日の達成状態をリセット</button></div>
+<div id="questForm" class="hidden" style="margin-top:10px"><label>クエスト名</label><input id="qn" placeholder="例：30分ウォーキング"><label>報酬（円）</label><input id="qr" type="number" min="1" step="100" placeholder="300"><label>EXP</label><input id="qx" type="number" min="1" step="10" placeholder="20"><button class="btn primary" onclick="addQuest()">登録</button></div>
+</section>
+
+<section class="card">
+<h2>⚡ ボーナスクエスト</h2>
+<div class="muted">一気に貯金を進める大型イベント。達成報酬は現金貯金に加算。</div>
+<div id="bonuses"></div>
+<div style="margin-top:8px"><button class="btn secondary" onclick="toggle('bonusForm')">＋大型クエスト追加</button></div>
+<div id="bonusForm" class="hidden" style="margin-top:10px"><label>クエスト名</label><input id="bn" placeholder="例：今月3万円を一括貯金"><label>一括貯金額（円）</label><input id="br" type="number" min="1000" step="1000" placeholder="30000"><label>EXP</label><input id="bx" type="number" min="10" step="10" placeholder="300"><button class="btn gold" onclick="addBonus()">登録</button></div>
+</section>
+
+<section class="card">
+<h2>🍽️ 週間カロリー攻略</h2>
+<div class="muted">週平均 <b id="calTargetLabel">1,800</b> kcal以下でCLEAR → +300円 / +30EXP</div>
+<div id="cal"></div><div id="calResult" class="small">7日分を入力すると判定。</div>
+<button class="btn" onclick="resetCal()">今週リセット</button>
+</section>
+
+<section class="card">
+<h2>📅 習慣クエスト</h2>
+<div id="habits"></div>
+</section>
+
+<section class="card">
+<h2>🏧 現金化待ち</h2>
+<div class="muted">手数料対策。少額で何度もATMに行かず、まとまった時に現金化する。</div>
+<div class="row" style="margin-top:8px"><div><div class="small">待機額</div><div id="pending" class="big">¥0</div></div><div style="width:135px"><label>ATMライン</label><select id="threshold" onchange="render()"><option value="3000">¥3,000</option><option value="5000" selected>¥5,000</option><option value="10000">¥10,000</option><option value="20000">¥20,000</option></select></div></div>
+<div class="bar"><div id="pendingbar" class="fill"></div></div><div id="pendingMsg" class="small" style="margin-top:7px"></div>
+<button id="cashout" class="btn primary" style="width:100%;margin-top:9px" onclick="cashout()">🏧 まとめて現金化</button>
+</section>
+
+<section class="card">
+<h2>🎰 貯金ガチャ</h2>
+<div class="gacha"><div id="gachaTier">🔒 30万円で解放</div><div class="machine">🎰</div><div id="gachaInfo" class="small">節目到達でチケットGET。</div>
+<button id="draw" class="btn gold" onclick="drawGacha()">🎰 ガチャを回す</button><div id="gachaResult"></div></div>
+</section>
+
+<section class="card">
+<h2>🗺️ 貯金ロードマップ</h2><div id="roadmap"></div>
+</section>
+
+<section class="card">
+<div class="row"><h2>⚙️ 設定</h2><button class="btn" onclick="toggle('settings')">開く</button></div>
+<div id="settings" class="hidden">
+<label>目標名</label><input id="sGoal">
+<label>最終目標額</label><input id="sTarget" type="number" min="1">
+<label>銀行貯金</label><input id="sBank" type="number" min="0">
+<label>現金貯金</label><input id="sCash" type="number" min="0">
+<label>週間カロリー目標</label><input id="sCal" type="number" min="500">
+<button class="btn primary" onclick="saveSettings()">設定を保存</button>
+<button class="btn danger" onclick="resetAll()">全データ初期化</button>
+</div>
+</section>
+
+<section class="card"><div class="row"><h2>📊 最近の履歴</h2><button class="btn" onclick="clearHistory()">削除</button></div><div id="history" class="small"></div></section>
+</div>
+<div id="toast" class="notice"></div>
+
+<script>
+const KEY="savingRPG_v9";
+const DEFAULT={
+ bank:270215,cash:0,pending:0,target:3000000,goal:"RAV4購入資金",calTarget:1800,
+ lastDate:"",streak:0,totalQuestEarned:0,totalExp:0,tickets:0,
+ quests:[
+  {id:"walk",name:"30分ウォーキング",reward:300,exp:30,custom:false},
+  {id:"train",name:"トレーニングをする",reward:500,exp:50,custom:false},
+  {id:"noBuy",name:"無駄な買い物をしない",reward:200,exp:20,custom:false},
+  {id:"login",name:"今日ログインする",reward:100,exp:10,custom:false}
+ ],
+ bonuses:[
+  {id:"b10",name:"10,000円を一括貯金",reward:10000,exp:150,done:false},
+  {id:"b30",name:"30,000円を一括貯金",reward:30000,exp:400,done:false},
+  {id:"b50",name:"50,000円を一括貯金",reward:50000,exp:700,done:false}
+ ],
+ dailyDone:{},bonusDone:{},cal:Array(7).fill(null),calRewarded:false,
+ habits:{eat:{name:"外食我慢",reward:300,exp:30,count:0,target:1},bento:{name:"弁当職人",reward:500,exp:50,count:0,target:5},login:{name:"月間ログイン",reward:1000,exp:100,count:1,target:30}},
+ month:"",history:[],milestones:[],gachaReward:null,gachaLast:0
+};
+let s=JSON.parse(localStorage.getItem(KEY)||"null")||structuredClone(DEFAULT);
+function money(n){return "¥"+Math.round(n).toLocaleString("ja-JP")}
+function dateKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function monthKey(){return dateKey().slice(0,7)}
+function save(){localStorage.setItem(KEY,JSON.stringify(s))}
+function toast(t){const e=document.getElementById("toast");e.textContent=t;e.style.display="block";clearTimeout(window.__toast);window.__toast=setTimeout(()=>e.style.display="none",1900)}
+function addHistory(t,amount=0,exp=0){s.history.unshift({date:new Date().toLocaleString("ja-JP"),text:t,amount,exp});s.history=s.history.slice(0,80)}
+function addReward(amount,exp,text){s.cash+=amount;s.pending+=amount;s.totalQuestEarned+=amount;s.totalExp+=exp;addHistory(text+" +"+money(amount)+" / +"+exp+"EXP",amount,exp);checkMilestones(false)}
+function rollover(){
+ const d=dateKey(),m=monthKey();
+ if(!s.lastDate){s.lastDate=d;s.streak=1}
+ else if(s.lastDate!==d){s.streak++;s.dailyDone={};s.bonusDone={};addHistory("🌅 日付更新：デイリークエストをリセット")}
+ if(s.month!==m){s.month=m;s.habits.eat.count=0;s.habits.bento.count=0;s.habits.login.count=0;s.habits.login.count=1;addHistory("🗓️ 新しい月：月間クエストを更新")}
+ s.lastDate=d;save()
+}
+function render(){
+ rollover();
+ const total=s.bank+s.cash,p=Math.min(100,total/s.target*100);
+ bank.textContent=money(s.bank);cash.textContent=money(s.cash);goalName.textContent=s.goal;document.getElementById("total").textContent=money(total);
+ pct.textContent=p.toFixed(1)+"%";progress.style.width=p+"%";remain.textContent=total>=s.target?"🏆 GOAL CLEAR！":"あと "+money(s.target-total);
+ speed.textContent="累計獲得 "+money(s.totalQuestEarned||0);streak.textContent="🔥 "+s.streak+"日";today.textContent=dateKey();
+ const lv=Math.floor((s.totalExp||0)/100)+1,xp=(s.totalExp||0)%100;
+ level.textContent="Lv."+lv;exp.textContent="EXP "+xp+" / 100";xpbar.style.width=xp+"%";
+ questTotal.textContent=money(s.totalQuestEarned||0);
+ const ds=dateKey();const todayAmt=s.history.filter(x=>x.date.startsWith(new Date().toLocaleDateString("ja-JP"))&&x.amount).reduce((a,x)=>a+x.amount,0);todayEarned.textContent="今日 "+money(todayAmt);
+ renderQuests();renderBonuses();renderCal();renderHabits();renderCash();renderGacha();renderRoadmap();renderHistory();
+ sGoal.value=s.goal;sTarget.value=s.target;sBank.value=s.bank;sCash.value=s.cash;sCal.value=s.calTarget;calTargetLabel.textContent=s.calTarget.toLocaleString();
+ save()
+}
+function renderQuests(){
+ const box=document.getElementById("quests");box.innerHTML="";
+ const qs=s.quests.filter(q=>q.id!=="bento"||new Date().getDay()>=1&&new Date().getDay()<=5);
+ qs.forEach(q=>{const done=!!s.dailyDone[q.id];const div=document.createElement("div");div.className="quest "+(done?"done":"");div.innerHTML=`<div><b>⚔️ ${q.name}</b><div class="muted">+${money(q.reward)} / +${q.exp}EXP</div></div><button class="${done?"":"primary"}" ${done?"disabled":""} onclick="completeQuest('${q.id}')">${done?"✓ CLEAR":"達成！"}</button>`;box.appendChild(div)})
+}
+function completeQuest(id){
+ const q=s.quests.find(x=>x.id===id);if(!q||s.dailyDone[id])return;
+ s.dailyDone[id]=1;addReward(q.reward,q.exp,"⚔️ "+q.name+" 達成！");
+ save();render();toast("クエスト達成！ "+money(q.reward)+" / +"+q.exp+"EXP")
+}
+function renderBonuses(){
+ bonuses.innerHTML=s.bonuses.map((q,i)=>`<div class="bonus"><div class="row"><div><b>⚡ ${q.name}</b><div class="muted">一括 +${money(q.reward)} / +${q.exp}EXP</div></div><button class="gold" ${q.done?"disabled":""} onclick="completeBonus(${i})">${q.done?"✓ CLEAR":"達成！"}</button></div></div>`).join("")
+}
+function completeBonus(i){const q=s.bonuses[i];if(!q||q.done)return;q.done=true;addReward(q.reward,q.exp,"⚡ "+q.name+" 達成！");save();render();toast("BONUS！ "+money(q.reward)+" 獲得！")}
+function toggle(id){document.getElementById(id).classList.toggle("hidden")}
+function addQuest(){const n=qn.value.trim(),r=Number(qr.value),x=Number(qx.value)||10;if(!n||r<=0)return toast("入力を確認してね");s.quests.push({id:"custom_"+Date.now(),name:n,reward:r,exp:x,custom:true});qn.value=qr.value=qx.value="";save();render();toast("通常クエスト追加！")}
+function addBonus(){const n=bn.value.trim(),r=Number(br.value),x=Number(bx.value)||100;if(!n||r<1000)return toast("入力を確認してね");s.bonuses.push({id:"bonus_"+Date.now(),name:n,reward:r,exp:x,done:false});bn.value=br.value=bx.value="";save();render();toast("大型クエスト追加！")}
+function renderCal(){cal.innerHTML=s.cal.map((v,i)=>`<label>${["月","火","水","木","金","土","日"][i]}<input type="number" min="0" value="${v??""}" placeholder="kcal" onchange="setCal(${i},this.value)"></label>`).join("");const vals=s.cal.filter(v=>v!==null);calResult.textContent=vals.length===7?((s.cal.reduce((a,b)=>a+b,0)/7<=s.calTarget)?"🎉 CLEAR！ +¥300 / +30EXP":"未達。次週リトライ"):`あと ${7-vals.length}日入力`}
+function setCal(i,v){s.cal[i]=v===""?null:Number(v);if(s.cal.every(x=>x!==null)&&s.cal.reduce((a,b)=>a+b,0)/7<=s.calTarget&&!s.calRewarded){s.calRewarded=true;addReward(300,30,"🍽️ 週間カロリー攻略 CLEAR！");toast("週間カロリー CLEAR！")}else{save();render()}}
+function resetCal(){s.cal=Array(7).fill(null);s.calRewarded=false;save();render()}
+function renderHabits(){
+ const h=s.habits;
+ habits.innerHTML=Object.entries(h).map(([id,x])=>`<div class="quest"><div style="flex:1"><b>📅 ${x.name}</b><div class="muted">+${money(x.reward)} / +${x.exp}EXP　${x.count}/${x.target}</div><div class="bar"><div class="fill" style="width:${Math.min(100,x.count/x.target*100)}%"></div></div></div><button ${x.count>=x.target?"disabled":""} onclick="habit('${id}')">${x.count>=x.target?"✓ CLEAR":"+1"}</button></div>`).join("")
+}
+function habit(id){const h=s.habits[id];if(!h||h.count>=h.target)return;h.count++;if(h.count>=h.target)addReward(h.reward,h.exp,"📅 "+h.name+" COMPLETE！");else{save();render()}}
+function renderCash(){const th=Number(threshold.value);pending.textContent=money(s.pending);pendingbar.style.width=Math.min(100,s.pending/th*100)+"%";pendingMsg.textContent=s.pending>=th?"🔥 現金化可能！":"あと "+money(th-s.pending)+" で現金化";cashout.disabled=s.pending<th}
+function cashout(){const n=s.pending;if(n<=0)return;if(n>s.bank)return toast("銀行残高が不足。実際に銀行から引き出す操作は手動です");s.bank-=n;s.cash+=n;s.pending=0;addHistory("🏧 現金化記録 "+money(n),0,0);s.dailyDone={};s.bonusDone={};s.bonuses.forEach(q=>q.done=false);save();render();toast("🏧 "+money(n)+" を現金化！")}
+function checkMilestones(show=true){const total=s.bank+s.cash;let gained=0;for(let i=1;i<=Math.floor(total/100000);i++){if(!s.milestones.includes(i)){s.milestones.push(i);s.tickets++;gained++}}if(gained&&show)toast("🎟️ ガチャチケット "+gained+"枚GET！");save()}
+function renderGacha(){const total=s.bank+s.cash;const next=Math.floor(total/100000)+1;gachaTier.textContent=s.tickets?`🎟️ チケット ${s.tickets}枚`:`🔒 次の到達 ${money(next*100000)}`;gachaInfo.textContent=s.tickets?"節目到達ガチャを回せます。":"10万円ごとにチケット獲得";draw.disabled=s.tickets<=0;if(s.gachaReward!==null){gachaResult.innerHTML=`<div class="gresult">🎉 ${money(s.gachaReward)}</div><button class="btn" onclick="useReward()">🛍️ 使う</button> <button class="btn primary" onclick="saveGacha()">💰 貯金</button>`}else gachaResult.innerHTML=""}
+function drawGacha(){if(s.tickets<=0)return toast("チケットがないよ");s.tickets--;const r=Math.random(),v=r<.55?500:r<.82?1000:r<.94?2000:r<.99?5000:10000;s.gachaReward=v;save();render()}
+function useReward(){const x=s.gachaReward;s.gachaReward=null;addHistory("🛍️ ガチャご褒美を使う "+money(x));save();render();toast(money(x)+"をご褒美に！")}
+function saveGacha(){const x=s.gachaReward;s.cash+=x;s.gachaReward=null;addHistory("💰 ガチャ報酬を貯金 "+money(x),x,0);save();render();toast(money(x)+"を貯金！")}
+function renderRoadmap(){const total=s.bank+s.cash,ms=[0,100000,300000,500000,1000000,1500000,2000000,2500000,3000000],ns=["🏕️ 冒険開始","⚔️ 10万円の村","⚔️ 30万円の砦","⚔️ 50万円の街","🏰 100万円の城","🐉 150万円の王都","🐲 200万円の竜門","🔥 250万円の魔境","🏆 300万円・王国復興"];roadmap.innerHTML=ms.map((x,i)=>`<div class="milestone ${total>=x?"done":(total<x&&(i===0||total>=ms[i-1])?"next":"")}"><div class="row"><b>${ns[i]}</b><span>${money(x)}</span></div></div>`).join("")}
+function renderHistory(){history.innerHTML=s.history.length?s.history.slice(0,15).map(x=>`<div style="padding:6px 0;border-bottom:1px solid #26313d">${x.date}　${x.text}</div>`).join(""):"まだ履歴なし"}
+function saveSettings(){const g=Number(sTarget.value),b=Number(sBank.value),c=Number(sCash.value),ct=Number(sCal.value);if(!g||g<=0||b<0||c<0||ct<500)return toast("設定を確認してね");s.goal=sGoal.value.trim()||"貯金目標";s.target=g;s.bank=b;s.cash=c;s.calTarget=ct;save();render();toast("⚙️ 設定保存！")}
+function resetDaily(){s.dailyDone={};save();render();toast("今日の達成状態をリセット")}
+function clearHistory(){if(confirm("履歴を削除する？")){s.history=[];save();render()}}
+function resetAll(){if(confirm("Ver.9のデータをすべて初期化しますか？")){localStorage.removeItem(KEY);location.reload()}}
+setInterval(()=>{if(dateKey()!==s.lastDate)render()},30000);
+render();
+</script>
+</body>
+</html>
